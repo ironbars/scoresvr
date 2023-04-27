@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Score Server</title>
+  </head>
+  <body>
+    <h1>Available Scores</h1>
+    <ul>
+      {% for score in scores %}
+      <li><a href="{{ url_for(path, filename=score ~ '.pdf') }}">{{ score }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
