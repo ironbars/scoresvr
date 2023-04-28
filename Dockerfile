@@ -1,4 +1,4 @@
-FROM python:3.11.3-slim as base
+FROM python:3.11.3-slim AS base
 
 ENV POETRY_VERSION=1.4.2 \
     PYSETUP_PATH="/opt/pysetup" \
