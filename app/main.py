@@ -4,15 +4,14 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-SCORES_PATH = "static"
+SCORES_PATH = "scores"
 
 def get_scores():
     scores_path = pathlib.Path(SCORES_PATH)
-    scores = []
-
-    for s in scores_path.iterdir():
-        if s.is_file and s.name.endswith(".pdf"):
-            scores.append(s.name.rstrip(".pdf"))
+    scores = [
+        score.name.rstrip(".pdf")
+        for score in scores_path.glob("*.pdf")
+    ]
 
     return scores
 
@@ -22,5 +21,8 @@ def get_scores():
 def home():
     scores = get_scores()
 
-    return render_template("index.html", path=SCORES_PATH, scores=scores)
+    return render_template("index.html", scores=scores)
 
+@app.route("/scores/<title>")
+def score_getter(title):
+    return f"{title}"

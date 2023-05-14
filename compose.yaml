@@ -1,0 +1,24 @@
+services:
+  web:
+    image: scoresvr-httpd
+    ports:
+      - 8080:8080
+    volumes:
+      - scores:/var/www/html/scores
+    networks:
+      - scoresvr-net
+  scoresvr:
+    container_name: scoreserver
+    image: scoresvr
+    volumes:
+      - scores:/app/scores
+    networks:
+      - scoresvr-net
+
+volumes:
+  scores:
+    external: true
+
+networks:
+  scoresvr-net:
+    external: true
