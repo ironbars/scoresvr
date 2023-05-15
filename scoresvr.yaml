@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: scoreserver
+  name: scoreserver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scoreserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: scoreserver
+    spec:
+      containers:
+      - image: scoresvr
+        name: scoresvr
+        imagePullPolicy: Never
+        resources: {}
+        volumeMounts:
+        - mountPath: "/app/scores"
+          name: scores-mount
+      volumes:
+      - name: scores-mount
+        hostPath:
+          path: "/data"
+status: {}
