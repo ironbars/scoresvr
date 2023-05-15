@@ -18,15 +18,21 @@ spec:
         app: scoreserver
     spec:
       containers:
-      - image: scoresvr
-        name: scoresvr
-        imagePullPolicy: Never
-        resources: {}
-        volumeMounts:
-        - mountPath: "/app/scores"
-          name: scores-mount
+        - image: scoresvr
+          name: scoresvr
+          imagePullPolicy: Never
+          resources: {}
+          volumeMounts:
+            - mountPath: "/app/scores"
+              name: scores-mount
+        - image: scoresvr-httpd
+          name: scoresvr-httpd
+          imagePullPolicy: Never
+          volumeMounts:
+            - mountPath: "/var/www/html/scores"
+              name: scores-mount
       volumes:
-      - name: scores-mount
-        hostPath:
-          path: "/data"
+        - name: scores-mount
+          hostPath:
+            path: "/scores"
 status: {}
