@@ -41,7 +41,7 @@ docker build -t scoresvr-httpd .
 You'll need to rebuild the images so that minikube can use them.  See
 [here](#building-the-images-for-minkube).
 
-The `scoresvr.yaml` file assumes that you have mounted a directory containing
+The `scoreserver.yaml` file assumes that you have mounted a directory containing
 sheet music inside of minikube at `/scores`.
 
 You can do that via:  
@@ -54,14 +54,7 @@ The process spawned by that command will have to stay active for as long as you
 want the directory mounted.  See [this
 page](https://minikube.sigs.k8s.io/docs/handbook/mount/) for more information.
 
-You'll also need to create the service (TODO: add the service to the manifest).
-Use:  
-
-```
-kubectl expose deployment/scoreserver --type=NodePort --port=8080
-```
-
-Lastly, you may need to rebuild the `scoresvr-httpd` image.  Edit the file
+You may need to rebuild the `scoresvr-httpd` image.  Edit the file
 `web/scoresvr-httpd.conf` and uncomment the line:  
 
 ```
@@ -70,6 +63,31 @@ ProxyPass "/" "http://localhost:8000"
 
 After that, rebuild the image as detailed in the [building
 section](#building-the-images-for-minikube).
+
+Lastly, expose the service outside of the cluster:  
+
+```
+minikube service scoreserver-service --url
+```
+
+## Kubernetes (kind)
+
+Before anything, you'll need to create your cluster with [extra
+mounts](https://kind.sigs.k8s.io/docs/user/configuration/#extra-mounts) and
+settings for [ingress](https://kind.sigs.k8s.io/docs/user/ingress/).  The mount
+can technically be mounted anywhere and called anything, of course, but to avoid
+making changes to the cluster configuration it should be `/scores`.  The
+configurations can all be found [here](https://github.com/ironbars/kind-iron).
+
+You have to load the images into the cluster with kind:
+
+
+```
+kind load docker-image scoresvr
+```
+
+Since this deployment is using an ingress controller (nginx), the web server has
+been removed from the deployment.  
 
 ### Building the images for minikube
 
