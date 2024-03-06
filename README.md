@@ -91,3 +91,9 @@ docker build -t <image_tag> .  # for example
 
 Then you can issue the `docker build` command however you like.
 
+## Deploying the app
+
+```
+kubectl create namespace scoreserver
+kubectl apply -f manifests/{service,scoreserver,ingress}.yaml -n scoreserver
+```
