@@ -7,18 +7,6 @@ metadata:
   name: scoreserver
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: scoreserver-service
-spec:
-  selector:
-    app: scoreserver
-  ports:
-    - port: 80 
-      targetPort: 8000
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,6 +36,18 @@ spec:
         - name: scores-mount
           hostPath:
             path: "/scores"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scoreserver-service
+spec:
+  selector:
+    app: scoreserver
+  ports:
+    - port: 80 
+      targetPort: 8000
 
 ---
 apiVersion: networking.k8s.io/v1
