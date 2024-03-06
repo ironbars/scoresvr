@@ -54,20 +54,13 @@ The process spawned by that command will have to stay active for as long as you
 want the directory mounted.  See [this
 page](https://minikube.sigs.k8s.io/docs/handbook/mount/) for more information.
 
-You may need to rebuild the `scoresvr-httpd` image.  Edit the file
-`web/scoresvr-httpd.conf` and uncomment the line:  
-
-```
-ProxyPass "/" "http://localhost:8000"
-```
-
 After that, rebuild the image as detailed in the [building
 section](#building-the-images-for-minikube).
 
-Lastly, expose the service outside of the cluster:  
+Lastly, enable ingress:
 
 ```
-minikube service scoreserver-service --url
+minikube addons enable ingress
 ```
 
 ## Kubernetes (kind)
@@ -85,9 +78,6 @@ You have to load the images into the cluster with kind:
 ```
 kind load docker-image scoresvr
 ```
-
-Since this deployment is using an ingress controller (nginx), the web server has
-been removed from the deployment.  
 
 ### Building the images for minikube
 
