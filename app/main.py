@@ -29,4 +29,4 @@ def send_score(title):
 
 
 app = Flask(__name__)
-app.register_blueprint(scoreserver, url_prefix="/scoreserver")
+app.register_blueprint(scoreserver)

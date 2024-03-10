@@ -8,7 +8,7 @@ spec:
   - http:
       paths:
       - pathType: Prefix
-        path: /scoreserver
+        path: /
         backend:
           service:
             name: scoreserver-service
