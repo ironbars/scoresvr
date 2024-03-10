@@ -1,6 +1,7 @@
 import pathlib
 
 from flask import Flask, Blueprint, render_template, send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 SCORES_PATH = "scores"
 scoreserver = Blueprint("scoreserver", __name__, template_folder="templates")
@@ -30,3 +31,4 @@ def send_score(title):
 
 app = Flask(__name__)
 app.register_blueprint(scoreserver)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=1, x_proto=1)
