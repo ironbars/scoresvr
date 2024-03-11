@@ -24,6 +24,12 @@ spec:
           volumeMounts:
             - mountPath: "/app/scores"
               name: scores-mount
+        - image: scoresvr-nginx
+          name: scoresvr-nginx
+          imagePullPolicy: Never
+          volumeMounts:
+            - mountPath: "/opt/app-root/src/scores"
+              name: scores-mount
       volumes:
         - name: scores-mount
           hostPath:
