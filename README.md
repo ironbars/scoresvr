@@ -9,7 +9,8 @@ it at `/app/scores` inside of the container.  Assuming you have a volume called
 `scores`:  
 
 ```
-docker run -d -v scores:/app/scores -p 8080:8000 scoresvr:0.1.0
+docker run -d -v scores:/app/scores scoresvr
+docker run -d -v scores:/var/www/html/scores -p 8080:8080 scoresvr-httpd
 ```
 
 ## Docker Compose
@@ -22,18 +23,13 @@ The compose file assumes that you have:
 1. A custom network called `scoresvr-net` created.  Alternatively, you could
    remove the `external` key and let Docker create it for you.
 
-Lastly, you may need to rebuild the `scoresvr-httpd` image.  Edit the file
-`web/scoresvr-httpd.conf` and uncomment the line:  
+To start the app:  
 
 ```
-ProxyPass "/" "http://scoreserver:8000/"
-```
-
-After that rebuild the image like so:  
-
-```
-cd web/
-docker build -t scoresvr-httpd .
+cd manifests/
+docker compose up
+# OR
+# docker compose up -d
 ```
 
 ## Kubernetes (minikube)
@@ -77,6 +73,7 @@ You have to load the images into the cluster with kind:
 
 ```
 kind load docker-image scoresvr
+kind load docker-image scoresvr-nginx
 ```
 
 ### Building the images for minikube
@@ -91,7 +88,7 @@ docker build -t <image_tag> .  # for example
 
 Then you can issue the `docker build` command however you like.
 
-## Deploying the app
+### Deploying the app
 
 ```
 kubectl create namespace scoreserver
