@@ -76,6 +76,12 @@ kind load docker-image scoresvr
 kind load docker-image scoresvr-nginx
 ```
 
+Optionally, create a namespace for this app:  
+
+```
+kubectl create namespace scoreserver
+```
+
 ### Building the images for minikube
 
 To allow minikube to use locally built Docker images, you need to do the
