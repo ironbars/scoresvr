@@ -1,6 +1,6 @@
 import pathlib
 
-from flask import Flask, Blueprint, render_template, send_from_directory
+from flask import Flask, Blueprint, render_template, send_from_directory, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 SCORES_PATH = "scores"
@@ -22,8 +22,10 @@ def get_scores():
 def home():
     scores = get_scores()
 
-    return render_template("index.html", scores=scores)
+    return render_template("index.html", scores=scores, config=request.environ)
 
+# This shouldn't actually be doing anything in most cases.  It is just here to generate
+# URLs for the scores themselves.  There might be a better way to do this.
 @scoreserver.route("/scores/<title>")
 def send_score(title):
     return send_from_directory('scores', title)
@@ -31,4 +33,4 @@ def send_score(title):
 
 app = Flask(__name__)
 app.register_blueprint(scoreserver)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=1, x_proto=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=2, x_proto=1)
