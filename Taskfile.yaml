@@ -1,0 +1,28 @@
+version: '3'
+tasks:
+  stop:
+    cmds:
+      - kubectl delete -f scoreserver.yaml
+  build:
+    cmds:
+      - docker build . -t scoresvr
+      - docker build web/ -f Dockerfile.nginx -t scoresvr-nginx
+    sources:
+      - Dockerfile
+      - web/Dockerfile.nginx
+  load:
+    cmds:
+      - task: build
+      - kind load docker-image scoresvr --name $CLUSTER_NAME
+      - kind load docker-image scoresvr-nginx --name $CLUSTER_NAME
+    env:
+      CLUSTER_NAME: iron-1
+    preconditions:
+      - which kind &> /dev/null
+      - sh: 'docker ps | grep -q control-plane'
+  deploy:
+    cmds:
+      - task: load
+      - kubectl apply -f manifests/scoreserver.yaml
+    preconditions:
+      - which kubectl &> /dev/null
