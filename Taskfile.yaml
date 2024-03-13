@@ -6,7 +6,7 @@ tasks:
   build:
     cmds:
       - docker build . -t scoresvr
-      - docker build web/ -f Dockerfile.nginx -t scoresvr-nginx
+      - docker build web/ -f web/Dockerfile.nginx -t scoresvr-nginx
     sources:
       - Dockerfile
       - web/Dockerfile.nginx
