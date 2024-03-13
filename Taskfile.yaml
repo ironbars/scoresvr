@@ -10,6 +10,8 @@ tasks:
     sources:
       - Dockerfile
       - web/Dockerfile.nginx
+      - app/main.py
+      - app/templates/index.html
   load:
     cmds:
       - task: build
