@@ -103,7 +103,7 @@ kubectl apply -f manifests/{service,scoreserver,ingress}.yaml -n scoreserver
 
 ## Changes
 
-Automated building/deploying is supported via [task](https://github.com/go-task/task)  
+Automated building/deploying is supported via [task](https://github.com/go-task/task) 
 only when using `kind` for deployment.  Ensure that the app has already been
 deployed via `kubectl apply`.  Subsequent changes can be deployed with:  
 
