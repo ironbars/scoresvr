@@ -1,30 +1,58 @@
 version: '3'
+
 tasks:
-  stop:
-    cmds:
-      - kubectl delete -f scoreserver.yaml
-  build:
+  build-app:
     cmds:
       - docker build . -t scoresvr
-      - docker build web/ -f web/Dockerfile.nginx -t scoresvr-nginx
+      - echo $(date +%F_%H%M%S) > .build_id
     sources:
       - Dockerfile
-      - web/Dockerfile.nginx
       - app/main.py
       - app/templates/index.html
-  load:
+
+  build-web:
     cmds:
-      - task: build
+      - docker build web/ -f web/Dockerfile.nginx -t scoresvr-nginx
+      - echo $(date +%F_%H%M%S) > web/.build_id
+    sources:
+      - web/Dockerfile.nginx
+      - web/scoresvr-nginx.conf
+
+  load-app:
+    deps:
+      - build-app
+    cmds:
       - kind load docker-image scoresvr --name $CLUSTER_NAME
+    env:
+      CLUSTER_NAME: iron-1
+    sources:
+      - .build_id
+
+  load-web:
+    deps:
+      - build-web
+    cmds:
       - kind load docker-image scoresvr-nginx --name $CLUSTER_NAME
     env:
       CLUSTER_NAME: iron-1
-    preconditions:
-      - which kind &> /dev/null
-      - sh: 'docker ps | grep -q control-plane'
-  deploy:
+    sources:
+      - web/.build_id
+
+  stop:
+    deps:
+      - load-app
+      - load-web
     cmds:
-      - task: load
+      - kubectl delete -f manifests/scoreserver.yaml
+    sources:
+      - .build_id
+      - web/.build_id
+
+  deploy:
+    deps:
+      - stop
+    cmds:
       - kubectl apply -f manifests/scoreserver.yaml
-    preconditions:
-      - which kubectl &> /dev/null
+    sources:
+      - .build_id
+      - web/.build_id
