@@ -1,0 +1,58 @@
+version: '3'
+
+tasks:
+  build-app:
+    cmds:
+      - docker build . -t scoresvr
+      - echo $(date +%F_%H%M%S) > .build_id
+    sources:
+      - Dockerfile
+      - app/main.py
+      - app/templates/index.html
+
+  build-web:
+    cmds:
+      - docker build web/ -f web/Dockerfile.nginx -t scoresvr-nginx
+      - echo $(date +%F_%H%M%S) > web/.build_id
+    sources:
+      - web/Dockerfile.nginx
+      - web/scoresvr-nginx.conf
+
+  load-app:
+    deps:
+      - build-app
+    cmds:
+      - kind load docker-image scoresvr --name $CLUSTER_NAME
+    env:
+      CLUSTER_NAME: iron-1
+    sources:
+      - .build_id
+
+  load-web:
+    deps:
+      - build-web
+    cmds:
+      - kind load docker-image scoresvr-nginx --name $CLUSTER_NAME
+    env:
+      CLUSTER_NAME: iron-1
+    sources:
+      - web/.build_id
+
+  stop:
+    deps:
+      - load-app
+      - load-web
+    cmds:
+      - kubectl delete -f manifests/scoreserver.yaml
+    sources:
+      - .build_id
+      - web/.build_id
+
+  deploy:
+    deps:
+      - stop
+    cmds:
+      - kubectl apply -f manifests/scoreserver.yaml
+    sources:
+      - .build_id
+      - web/.build_id

@@ -11,10 +11,5 @@
       <li><a href="{{ url_for('scoreserver.send_score', title=score ~ '.pdf') }}" target="_blank">{{ score }}</a></li>
       {% endfor %}
     </ul>
-    <h2>App Config</h2>
-    <ul>
-      {% for key, value in config.items() %}
-      <li>{{ key }}: {{ value }}</li>
-      {% endfor %}
   </body>
 </html>
