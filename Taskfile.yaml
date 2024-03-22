@@ -39,20 +39,22 @@ tasks:
       - web/.build_id
 
   stop:
-    deps:
-      - load-app
-      - load-web
     cmds:
       - kubectl delete -f manifests/scoreserver.yaml
-    sources:
-      - .build_id
-      - web/.build_id
+      - cmd: touch .stopped
+        silent: true
+    status:
+      - test -f .stopped
 
   deploy:
     deps:
       - stop
+      - load-app
+      - load-web
     cmds:
       - kubectl apply -f manifests/scoreserver.yaml
+      - cmd: rm .stopped
+        silent: true
     sources:
       - .build_id
       - web/.build_id

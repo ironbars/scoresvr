@@ -3,3 +3,4 @@
 **/scores
 **/.build_id
 /.task
+.stopped
