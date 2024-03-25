@@ -21,17 +21,17 @@ spec:
         - image: scoresvr
           name: scoresvr
           imagePullPolicy: Never
-          volumeMounts:
-            - mountPath: "/app/scores"
-              name: scores-mount
         - image: scoresvr-nginx
           name: scoresvr-nginx
           imagePullPolicy: Never
+        - image: mongodb/mongodb-community-server
+          name: scoredb
+          imagePullPolicy: Never
           volumeMounts:
-            - mountPath: "/opt/app-root/src/scores"
-              name: scores-mount
+            - mountPath: "/data/db"
+              name: scores-data
       volumes:
-        - name: scores-mount
+        - name: scores-data
           hostPath:
-            path: "/scores"
+            path: "/data"
 
