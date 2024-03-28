@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scoresvr"
-version = "0.2.1"
+version = "0.3.0"
 description = "Webapp to display musical scores"
 authors = ["Marc Patton <pattonmj8503@gmail.com>"]
 license = "MIT"
