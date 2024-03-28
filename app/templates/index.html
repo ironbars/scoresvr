@@ -8,7 +8,7 @@
     <h1>Available Scores</h1>
     <ul>
       {% for score in scores %}
-      <li><a href="{{ url_for('scoreserver.send_score', title=score ~ '.pdf') }}" target="_blank">{{ score }}</a></li>
+      <li><a href="{{ url_for('scoreserver.send_score', title=score['simple_name']) }}" target="_blank">{{ score['title'] }}</a> ({{ score['composer'] }})</li>
       {% endfor %}
     </ul>
   </body>

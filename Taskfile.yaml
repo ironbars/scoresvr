@@ -1,10 +1,44 @@
 version: '3'
 
+env:
+  CLUSTER_NAME: iron-1
+  NAMESPACE: scoreserver
+
 tasks:
+  ### Standalone tasks
+  load-all:
+    cmds:
+      - kind load docker-image scoresvr --name $CLUSTER_NAME
+      - kind load docker-image scoresvr-nginx --name $CLUSTER_NAME
+      - kind load docker-image mongodb/mongodb-community-server --name $CLUSTER_NAME
+
+  init-app:
+    cmds:
+      - kubectl create namespace $NAMESPACE
+      - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+      - kubectl apply -f manifests/scoreserver.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/service.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/ingress.yaml -n $NAMESPACE
+
+  destroy:
+    cmds:
+      - kubectl delete -f manifests/scoreserver.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/service.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/ingress.yaml -n $NAMESPACE
+      - kind delete cluster --name $CLUSTER_NAME
+
+  clean:
+    cmds:
+      - rm .build_id
+      - rm web/.build_id
+      - rm .stopped
+  ###
+
   build-app:
     cmds:
       - docker build . -t scoresvr
-      - echo $(date +%F_%H%M%S) > .build_id
+      - cmd: echo $(date +%F_%H%M%S) > .build_id
+        silent: true
     sources:
       - Dockerfile
       - app/main.py
@@ -13,7 +47,8 @@ tasks:
   build-web:
     cmds:
       - docker build web/ -f web/Dockerfile.nginx -t scoresvr-nginx
-      - echo $(date +%F_%H%M%S) > web/.build_id
+      - cmd: echo $(date +%F_%H%M%S) > web/.build_id
+        silent: true
     sources:
       - web/Dockerfile.nginx
       - web/scoresvr-nginx.conf
@@ -23,8 +58,6 @@ tasks:
       - build-app
     cmds:
       - kind load docker-image scoresvr --name $CLUSTER_NAME
-    env:
-      CLUSTER_NAME: iron-1
     sources:
       - .build_id
 
@@ -33,18 +66,17 @@ tasks:
       - build-web
     cmds:
       - kind load docker-image scoresvr-nginx --name $CLUSTER_NAME
-    env:
-      CLUSTER_NAME: iron-1
     sources:
       - web/.build_id
 
   stop:
     cmds:
-      - kubectl delete -f manifests/scoreserver.yaml
+      - kubectl delete -f manifests/scoreserver.yaml -n $NAMESPACE
       - cmd: touch .stopped
         silent: true
     status:
       - test -f .stopped
+    ignore_error: true
 
   deploy:
     deps:
@@ -52,7 +84,7 @@ tasks:
       - load-app
       - load-web
     cmds:
-      - kubectl apply -f manifests/scoreserver.yaml
+      - kubectl apply -f manifests/scoreserver.yaml -n $NAMESPACE
       - cmd: rm .stopped
         silent: true
     sources:

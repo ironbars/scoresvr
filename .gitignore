@@ -2,5 +2,6 @@
 **/__pycache__/*
 **/scores
 **/.build_id
+**/*.json
 /.task
 .stopped
