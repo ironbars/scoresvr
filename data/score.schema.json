@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "score.schema.json",
+  "title": "Score Metadata",
+  "description": "Metadata for a musical score",
+  "type": "object",
+  "properties": {
+    "scores": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/score"
+      },
+      "uniqueItems": true
+    }
+  },
+  "definitions": {
+    "score": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string"
+        },
+        "simple_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "composer": {
+          "type": "string"
+        },
+        "time": {
+          "type": ["string", "array"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "key": {
+          "type": ["string", "array"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "engraving_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "_id",
+        "simple_name",
+        "title",
+        "composer",
+        "time",
+        "key",
+        "engraving_id"
+      ]
+    }
+  }
+}

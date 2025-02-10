@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "engraving.schema.json",
+  "title": "Engraving of a score",
+  "description": "Data for a musical score",
+  "type": "object",
+  "properties": {
+    "engravings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definintions/engraving"
+      },
+      "uniqueItems": true
+    }
+  },
+  "definitions": {
+    "engraving": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string"
+        },
+        "engraving": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "score_id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
