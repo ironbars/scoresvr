@@ -1,5 +1,0 @@
-FROM registry.access.redhat.com/ubi9/nginx-122:1-59
-
-COPY scoresvr-nginx.conf /etc/nginx/nginx.conf
-
-CMD nginx -g "daemon off;"
