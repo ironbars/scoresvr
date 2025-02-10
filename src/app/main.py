@@ -1,22 +1,18 @@
-from __future__ import annotations
-
 import base64
 import os
-import pathlib
 import zlib
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from flask import Flask, g, jsonify, make_response
+from bson.json_util import dumps
+from flask import Flask, Response, g, jsonify, make_response
 from pymongo import MongoClient
 from pymongo.database import Database
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-if TYPE_CHECKING:
-    from flask import Response
-
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/music")
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=2, x_proto=1)
 
 
@@ -48,9 +44,9 @@ def close_db(exception) -> None:
 @app.route("/scores", methods=["GET"])
 def get_scores() -> Response:
     db = get_db()
-    scores = list(db.scores.find({}, {"_id": 0}))
+    scores = list(db.scores.find({}))
 
-    return jsonify(scores)
+    return Response(dumps(scores), mimetype="application/json")
 
 
 @app.route("/scores/<title>", methods=["GET"])
@@ -65,7 +61,7 @@ def get_score(title: str) -> Response | tuple[Response, int]:
 
     if not engraving:
         return jsonify({"error": "Engraving not found"}), 404
-    
+
     try:
         engraving_data = decode_engraving(engraving["engraving"])
     except (KeyError, zlib.error, base64.binascii.Error) as e:

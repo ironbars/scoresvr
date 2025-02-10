@@ -1,10 +1,6 @@
-FROM python:3.11.3-slim AS base
+FROM python:3.13-slim AS base
 
-ENV POETRY_VERSION=1.4.2 \
-    PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv"
-
-ENV PATH="$VENV_PATH/bin:$PATH"
+RUN addgroup --system app && adduser --system --group app
 
 WORKDIR /app
 
@@ -15,31 +11,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1 \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1
+    PIP_NO_CACHE_DIR=1
 
-ENV PATH="$POETRY_HOME/bin:$PATH"
+COPY requirements.txt .
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends --assume-yes \
-        curl \
-        build-essential
-
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-WORKDIR $PYSETUP_PATH
-
-COPY pyproject.toml poetry.lock ./
-
-RUN poetry install --only=main --no-root
+RUN pip install -r requirements.txt
 
 
 FROM base AS final
 
-COPY --from=builder $PYSETUP_PATH $PYSETUP_PATH
-COPY ./app /app
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY ./src/app /app
+
+USER app
 
 EXPOSE 8000
 

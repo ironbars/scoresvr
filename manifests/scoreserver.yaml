@@ -18,15 +18,18 @@ spec:
         app: scoreserver
     spec:
       containers:
-        - image: scoresvr
+        - image: "localhost:5001/scoresvr"
           name: scoresvr
-          imagePullPolicy: Never
-        - image: scoresvr-nginx
-          name: scoresvr-nginx
-          imagePullPolicy: Never
-        - image: mongodb/mongodb-community-server
+          imagePullPolicy: Always
+        - image: "localhost:5001/nginx:1.26.3"
+          name: nginx
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: scoresvr-nginx-config
+              mountPath: "/etc/nginx/conf.d"
+        - image: "localhost:5001/mongodb-community-server"
           name: scoredb
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: "/data/db"
               name: scores-data
@@ -34,4 +37,7 @@ spec:
         - name: scores-data
           hostPath:
             path: "/data"
+        - name: scoresvr-nginx-config
+          configMap:
+            name: scoresvr-nginx-config
 
