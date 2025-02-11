@@ -8,32 +8,68 @@ env:
 
 tasks:
   ### Standalone tasks
-  init:
+  create-ns:
     cmds:
       - kubectl create namespace $NAMESPACE
+
+  delete-ns:
+    cmds:
+      - kubectl delete namespace $NAMESPACE
+
+  setup-db:
+    deps:
+      - create-ns
+    cmds:
+      - kubectl apply -f manifests/local-sc.yaml
+      - kubectl apply -f manifests/mongodb-pv.yaml
+      - kubectl apply -f manifests/mongodb-ss.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/mongodb-svc.yaml -n $NAMESPACE
+
+  delete-db:
+    cmds:
+      - kubectl scale statefulset mongodb --replicas=0 -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-ss.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-pv.yaml &
+      - |
+        kubectl patch pv mongodb-pv -p '{"metadata": {"finalizers": null}}'
+      - kubectl delete -f manifests/mongodb-svc.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/local-sc.yaml
+
+  setup-ingress:
+    cmds:
       - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
       - |
         kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type='json' -p='[
           {"op": "add", "path": "/spec/template/spec/nodeSelector", "value": {"kubernetes.io/hostname": "'$CLUSTER_NAME'-control-plane"}}
         ]'
       - kubectl wait -n ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
-      - kubectl apply -f manifests/mongodb-pv.yaml
-      - kubectl apply -f manifests/mongodb-pvc.yaml -n $NAMESPACE
-      - kubectl apply -f manifests/mongodb-ss.yaml -n $NAMESPACE
+  
+  setup-app:
+    cmds:
       - kubectl apply -f manifests/nginx-cm.yaml -n $NAMESPACE
       - kubectl apply -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
       - kubectl apply -f manifests/scoreserver-service.yaml -n $NAMESPACE
       - kubectl apply -f manifests/ingress.yaml -n $NAMESPACE
 
-  destroy:
+  delete-app:
     cmds:
       - kubectl delete -f manifests/ingress.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/service.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/scoreserver.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/scoreserver-service.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
       - kubectl delete -f manifests/nginx-cm.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/mongodb-ss.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/mongodb-pvc.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/mongodb-pv.yaml
+
+  init:
+    cmds:
+      - task: create-ns
+      - task: setup-db
+      - task: setup-ingress
+      - task: setup-app
+
+  destroy:
+    cmds:
+      - task: delete-app
+      - task: delete-db
+      - task: delete-ns
       - kind delete cluster --name $CLUSTER_NAME
 
   clean:

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-nodeport
+  namespace: scoreserver
+spec:
+  selector:
+    app: mongodb
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 27017    # Internal service port
+      targetPort: 27017  # The port in the MongoDB container
+      nodePort: 30017  # Exposed port (must be in 30000-32767 range)

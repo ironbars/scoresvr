@@ -21,15 +21,15 @@ spec:
         - image: "localhost:5001/scoresvr"
           name: scoresvr
           imagePullPolicy: Always
+          env:
+            - name: MONGO_URI
+              value: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongodb.scoreserver.svc.cluster.local:27107/scoresdb"
         - image: "localhost:5001/nginx:1.26.3"
           name: nginx
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: scoresvr-nginx-config
               mountPath: "/etc/nginx/conf.d"
-      env:
-        - name: MONGO_URI
-          value: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongodb.scoreserver.svc.cluster.local:27107/scoresdb"
       volumes:
         - name: scoresvr-nginx-config
           configMap:
