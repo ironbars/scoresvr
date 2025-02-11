@@ -17,9 +17,12 @@ tasks:
           {"op": "add", "path": "/spec/template/spec/nodeSelector", "value": {"kubernetes.io/hostname": "'$CLUSTER_NAME'-control-plane"}}
         ]'
       - kubectl wait -n ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
-      - kubectl apply -f manifests/scoresvr-nginx-configmap.yaml -n $NAMESPACE
-      - kubectl apply -f manifests/scoreserver.yaml -n $NAMESPACE
-      - kubectl apply -f manifests/service.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/mongodb-pv.yaml
+      - kubectl apply -f manifests/mongodb-pvc.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/mongodb-ss.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/nginx-cm.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/scoreserver-service.yaml -n $NAMESPACE
       - kubectl apply -f manifests/ingress.yaml -n $NAMESPACE
 
   destroy:
@@ -27,7 +30,10 @@ tasks:
       - kubectl delete -f manifests/ingress.yaml -n $NAMESPACE
       - kubectl delete -f manifests/service.yaml -n $NAMESPACE
       - kubectl delete -f manifests/scoreserver.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/scoresvr-nginx-configmap.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/nginx-cm.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-ss.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-pvc.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-pv.yaml
       - kind delete cluster --name $CLUSTER_NAME
 
   clean:

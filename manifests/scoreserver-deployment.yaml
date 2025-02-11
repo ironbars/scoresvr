@@ -27,16 +27,10 @@ spec:
           volumeMounts:
             - name: scoresvr-nginx-config
               mountPath: "/etc/nginx/conf.d"
-        - image: "localhost:5001/mongodb-community-server"
-          name: scoredb
-          imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - mountPath: "/data/db"
-              name: scores-data
+      env:
+        - name: MONGO_URI
+          value: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongodb.scoreserver.svc.cluster.local:27107/scoresdb"
       volumes:
-        - name: scores-data
-          hostPath:
-            path: "/data"
         - name: scoresvr-nginx-config
           configMap:
             name: scoresvr-nginx-config
