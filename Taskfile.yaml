@@ -48,19 +48,18 @@ tasks:
     cmds:
       - kubectl apply -f manifests/nginx-cm.yaml -n $NAMESPACE
       - kubectl apply -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
-      - kubectl apply -f manifests/scoreserver-service.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/scoreserver-svc.yaml -n $NAMESPACE
       - kubectl apply -f manifests/ingress.yaml -n $NAMESPACE
 
   delete-app:
     cmds:
       - kubectl delete -f manifests/ingress.yaml -n $NAMESPACE
-      - kubectl delete -f manifests/scoreserver-service.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/scoreserver-svc.yaml -n $NAMESPACE
       - kubectl delete -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
       - kubectl delete -f manifests/nginx-cm.yaml -n $NAMESPACE
 
   init:
     cmds:
-      - task: create-ns
       - task: setup-db
       - task: setup-ingress
       - task: setup-app
