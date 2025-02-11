@@ -1,7 +1,7 @@
 import base64
+import binascii
 import os
 import zlib
-from typing import TYPE_CHECKING
 
 from bson.json_util import dumps
 from flask import Flask, Response, g, jsonify, make_response
@@ -9,11 +9,10 @@ from pymongo import MongoClient
 from pymongo.database import Database
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/music")
 app = Flask(__name__)
 app.url_map.strict_slashes = False
-app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=2, x_proto=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=2, x_proto=1)  # type: ignore[method-assign]
 
 
 def decode_engraving(eng: list[str]) -> bytes:
@@ -27,7 +26,7 @@ def decode_engraving(eng: list[str]) -> bytes:
 
 def get_db() -> Database:
     if "db" not in g:
-        client = MongoClient(MONGO_URI)
+        client: MongoClient = MongoClient(MONGO_URI)
         g.db = client.get_database()
 
     return g.db
@@ -64,7 +63,7 @@ def get_score(title: str) -> Response | tuple[Response, int]:
 
     try:
         engraving_data = decode_engraving(engraving["engraving"])
-    except (KeyError, zlib.error, base64.binascii.Error) as e:
+    except (KeyError, zlib.error, binascii.Error) as e:
         return jsonify({"error": f"Decoding error: {str(e)}"}), 500
 
     response = make_response(engraving_data)

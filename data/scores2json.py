@@ -1,12 +1,11 @@
-import json
 import base64
+import json
+import os
 import re
 import zlib
-import os
 from pathlib import Path
 
 from bson.objectid import ObjectId
-
 
 SCORES_DIR = Path(os.environ.get("SCORESVR_SCORES_DIR", ""))
 METADATA_RE = re.compile(r"\s+\\?(title|subtitle|composer|time|key)(\s+=)?\s+(.*)")

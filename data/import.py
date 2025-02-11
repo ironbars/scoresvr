@@ -1,9 +1,8 @@
 import json
 import os
 
-from pymongo import MongoClient, InsertOne
 from bson.objectid import ObjectId
-
+from pymongo import InsertOne, MongoClient
 
 MONGO_HOST = os.environ.get("SCORESVR_MONGO_HOST", "127.0.0.1")
 MONGO_PORT = os.environ.get("SCORESVR_MONGO_PORT", "27017")
@@ -15,10 +14,10 @@ ecollection = db.engravings
 srequesting = []
 erequesting = []
 
-with open('scores.json', 'r') as sstream:
+with open("scores.json", "r") as sstream:
     score_data = json.load(sstream)
 
-with open('engravings.json', 'r') as estream:
+with open("engravings.json", "r") as estream:
     engraving_data = json.load(estream)
 
 scores = score_data["scores"]
