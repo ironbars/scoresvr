@@ -23,7 +23,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: MONGO_URI
-              value: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongodb.scoreserver.svc.cluster.local:27107/scoresdb"
+              value: "mongodb://mongodb-0.mongodb:27017/music?directConnection=true"
         - image: "localhost:5001/nginx:1.26.3"
           name: nginx
           imagePullPolicy: IfNotPresent

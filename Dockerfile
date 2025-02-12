@@ -2,6 +2,9 @@ FROM python:3.13-slim AS base
 
 RUN addgroup --system app && adduser --system --group app
 
+ENV VIRTUAL_ENV="/app/.venv" \
+    PATH="/app/.venv/bin:$PATH"
+
 WORKDIR /app
 
 
@@ -15,14 +18,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN python -m venv $VIRTUAL_ENV && pip install -r requirements.txt
 
 
 FROM base AS final
 
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY ./src/app /app
+COPY --from=builder $VIRTUAL_ENV $VIRTUAL_ENV
+COPY ./src/app/main.py /app/
 
 USER app
 

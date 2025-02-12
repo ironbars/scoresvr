@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import base64
 import binascii
 import os
 import zlib
+from typing import TYPE_CHECKING
 
 from bson.json_util import dumps
 from flask import Flask, Response, g, jsonify, make_response
 from pymongo import MongoClient
-from pymongo.database import Database
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017/music")
+if TYPE_CHECKING:
+    from pymongo.database import Database
+
+
+MONGO_URI = os.getenv("MONGO_URI", "")
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_prefix=1, x_for=2, x_proto=1)  # type: ignore[method-assign]
@@ -43,6 +49,7 @@ def close_db(exception) -> None:
 @app.route("/scores", methods=["GET"])
 def get_scores() -> Response:
     db = get_db()
+    print("Connection to database succeeded")
     scores = list(db.scores.find({}))
 
     return Response(dumps(scores), mimetype="application/json")

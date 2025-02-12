@@ -11,6 +11,7 @@ tasks:
   create-ns:
     cmds:
       - kubectl create namespace $NAMESPACE
+    ignore_error: true
 
   delete-ns:
     cmds:
@@ -22,13 +23,13 @@ tasks:
     cmds:
       - kubectl apply -f manifests/local-sc.yaml
       - kubectl apply -f manifests/mongodb-pv.yaml
-      - kubectl apply -f manifests/mongodb-ss.yaml -n $NAMESPACE
       - kubectl apply -f manifests/mongodb-svc.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/mongodb-sts.yaml -n $NAMESPACE
 
   delete-db:
     cmds:
       - kubectl scale statefulset mongodb --replicas=0 -n $NAMESPACE
-      - kubectl delete -f manifests/mongodb-ss.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/mongodb-sts.yaml -n $NAMESPACE
       - kubectl delete -f manifests/mongodb-pv.yaml &
       - |
         kubectl patch pv mongodb-pv -p '{"metadata": {"finalizers": null}}'
@@ -96,7 +97,7 @@ tasks:
 
   stop:
     cmds:
-      - kubectl delete -f manifests/scoreserver.yaml -n $NAMESPACE
+      - kubectl delete -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
       - cmd: touch .stopped
         silent: true
     status:
@@ -108,7 +109,7 @@ tasks:
       - stop
       - push
     cmds:
-      - kubectl apply -f manifests/scoreserver.yaml -n $NAMESPACE
+      - kubectl apply -f manifests/scoreserver-deployment.yaml -n $NAMESPACE
       - cmd: rm .stopped
         silent: true
     sources:

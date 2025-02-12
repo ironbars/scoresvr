@@ -17,11 +17,6 @@ spec:
       containers:
         - name: mongodb
           image: "localhost:5001/mongodb-community-server"
-          command:
-            - "mongod"
-          args:
-            - "--bind_ip_all"
-            - "--dbpath=/data/db"
           ports:
             - containerPort: 27017
           volumeMounts:
