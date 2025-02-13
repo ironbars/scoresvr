@@ -30,13 +30,13 @@
           "type": "string"
         },
         "time": {
-          "type": ["string", "array"],
+          "type": "array",
           "items": {
             "type": "string"
           }
         },
         "key": {
-          "type": ["string", "array"],
+          "type": "array",
           "items": {
             "type": "string"
           }

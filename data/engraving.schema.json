@@ -21,10 +21,7 @@
           "type": "string"
         },
         "engraving": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "type": "string"
         },
         "score_id": {
           "type": "string"

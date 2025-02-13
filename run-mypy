@@ -4,4 +4,4 @@ set -o errexit
 
 cd "$(dirname "$0")"
 
-poetry run mypy src/app/main.py
+poetry run mypy src/app/main.py data/ingest
