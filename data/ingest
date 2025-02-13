@@ -96,10 +96,9 @@ def get_score_data(path: Path, fs: GridFS) -> tuple[Score, Engraving]:
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group(required=True)
 
-    group.add_argument("path", nargs="?", help="Path to directory containing score")
-    group.add_argument(
+    parser.add_argument("path", nargs="?", help="Path to directory containing score")
+    parser.add_argument(
         "-d", "--score-dir", help="Path to directory containing multiple scores"
     )
 
@@ -119,8 +118,11 @@ def main() -> None:
     path = Path(args.path) if args.path else None
     score_repo = Path(args.score_dir) if args.score_dir else None
 
-    if path is None or score_repo is None:  # style here is to appease mypy
+    if path is None and score_repo is None:  # style here is to appease mypy
         sys.exit("Either 'path' or '--score-dir' must be provided")
+
+    if path and score_repo:
+        sys.exit("Only one of 'path' or '--score-dir' should be provided")
 
     client: MongoClient = MongoClient(MONGO_URI)
     db = client.get_database()
@@ -132,6 +134,8 @@ def main() -> None:
         [path]
         if path is not None
         else [d for d in score_repo.iterdir() if d.stem != "with-fingering"]
+        if score_repo is not None
+        else []
     )
 
     for src_dir in score_sources:
