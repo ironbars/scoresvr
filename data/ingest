@@ -70,7 +70,7 @@ def _get_score_metadata(path: Path) -> Score:
 def _get_engraving(path: Path, score: Score, fs: GridFS) -> Engraving:
     engraving = Engraving()
     engraving_file = (
-        path.parent.parent / "engravings" / (score.title or "unknown" + ".pdf")
+        path.parent.parent / "engravings" / ((score.title or "unknown") + ".pdf")
     )
 
     if not engraving_file.exists():
