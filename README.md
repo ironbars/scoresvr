@@ -87,15 +87,48 @@ You'll either need [poetry](https://python-poetry.org/) or to use `venv` and
 poetry install --no-root # gives you pymongo
 ```
 
+For reference, the ingestion script is expecting a directory structure like
+this:  
+
+```
+scores/
+├── engravings/
+│   ├── Example Score.pdf
+│   └── Other Score.pdf
+└── src/
+    ├── example-score/
+    │   └── main.ly
+    └── other-score/
+        ├── main.ly
+        └── voices/
+            ├── accompaniment.ly
+            └── melody.ly
+```
+
 Then you can run the following to populate the database:  
 
 ```
-poetry run data/ingest /path/to/a/score
+# ingest one score
+poetry run data/ingest /path/to/scores/src/example-score/
 
-# OR
-
-poetry run data/ingest -d /path/to/many/scores
+# or ingest all of them
+poetry run data/ingest -d /path/to/scores/src/
 ```
+
+Note that the structure _under_ the individual score directories doesn't matter.
+They should just contain one or more LilyPond source files.  
+
+The directory name will be used as the `simple_name` field in the database and
+the file name of the PDF should be `title`.pdf, where `title` is extracted from
+one of the source files.  The `simple_name`s were used to ease typing on the
+command line (and for the API endpoints for single scores).  The `title` is to
+preserve the name of the score in whatever language it comes from.  For example,
+there is a `choro-de-crianca` directory containing the LilyPond source, but the
+`title` field will read "Choro de Criança", which is also how it will read in
+the final engraving.  Using the [scores](https://github.com/ironbars/scores)
+repo will take care of all of this for you (or at least using it's build script
+and structure).
+
 ### Miscellaneous
 
 Note that, with the `requirements.txt` file present, you don't really need
