@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from bson.errors import InvalidId
 from bson.json_util import dumps
-from flask import Flask, Response, g, jsonify, make_response
+from bson.objectid import ObjectId
+from flask import Flask, Response, g, jsonify, make_response, request
 from gridfs import GridFS
 from pymongo import MongoClient
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -27,6 +29,25 @@ def get_db() -> Database:
     return g.db
 
 
+def build_scores_query(args: dict[str, list[str]]) -> dict[str, Any]:
+    query: dict[str, Any] = dict()
+
+    for key, value in args.items():
+        if len(value) > 1:
+            query[key] = {"$in": value}
+        else:
+            single_value = value[0]
+            if key == "_id":
+                try:
+                    query[key] = ObjectId(single_value)
+                except InvalidId:
+                    continue  # ignore invalid ObjectId
+            else:
+                query[key] = single_value
+
+    return query
+
+
 @app.teardown_appcontext
 def close_db(exception) -> None:
     db = g.pop("db", None)
@@ -38,8 +59,8 @@ def close_db(exception) -> None:
 @app.route("/scores", methods=["GET"])
 def get_scores() -> Response:
     db = get_db()
-    print("Connection to database succeeded")
-    scores = list(db.scores.find({}))
+    query = build_scores_query(request.args.to_dict(flat=False))
+    scores = list(db.scores.find(query))
 
     return Response(dumps(scores), mimetype="application/json")
 
