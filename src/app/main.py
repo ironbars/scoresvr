@@ -56,7 +56,7 @@ def close_db(exception) -> None:
         db.client.close()
 
 
-@app.route("/scores", methods=["GET"])
+@app.get("/scores")
 def get_scores() -> Response:
     db = get_db()
     query = build_scores_query(request.args.to_dict(flat=False))
@@ -65,7 +65,7 @@ def get_scores() -> Response:
     return Response(dumps(scores), mimetype="application/json")
 
 
-@app.route("/scores/<title>", methods=["GET"])
+@app.get("/scores/<title>")
 def get_score(title: str) -> Response | tuple[Response, int]:
     db = get_db()
     score = db.scores.find_one({"simple_name": title})
