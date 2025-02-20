@@ -73,13 +73,8 @@ def get_score(title: str) -> Response | tuple[Response, int]:
     if not score:
         return jsonify({"error": "Score not found"}), 404
 
-    engraving = db.engravings.find_one({"_id": score["engraving_id"]})
-
-    if not engraving:
-        return jsonify({"error": "Engraving not found"}), 404
-
     fs = GridFS(db)
-    engraving_data = fs.get(engraving["engraving"]).read()
+    engraving_data = fs.get(score["engraving_id"]).read()
     response = make_response(engraving_data)
 
     response.headers["Content-Type"] = "application/pdf"

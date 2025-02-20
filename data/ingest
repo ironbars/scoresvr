@@ -4,10 +4,8 @@ import argparse
 import os
 import re
 import sys
-from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
 
 from bson.objectid import ObjectId
 from gridfs import GridFS
@@ -25,15 +23,8 @@ class Score:
     composer: str | None = None
     time: list[str] = field(default_factory=list)
     key: list[str] = field(default_factory=list)
-    engraving_id: ObjectId | None = None
     subtitle: str | None = None
-
-
-@dataclass
-class Engraving:
-    _id: ObjectId = field(default_factory=ObjectId)
-    score_id: ObjectId | None = None
-    engraving: ObjectId | None = None
+    engraving_id: ObjectId | None = None
 
 
 def _get_score_metadata(path: Path) -> Score:
@@ -67,31 +58,69 @@ def _get_score_metadata(path: Path) -> Score:
     return score
 
 
-def _get_engraving(path: Path, score: Score, fs: GridFS) -> Engraving:
-    engraving = Engraving()
-    engraving_file = (
-        path.parent.parent / "engravings" / ((score.title or "unknown") + ".pdf")
-    )
+def _get_engraving(
+    engraving_file: Path, fs: GridFS, overwrite: bool = False
+) -> ObjectId:
+    if not engraving_file.exists() or not engraving_file.is_file():
+        raise ValueError(f"'{engraving_file}' does not exist or is not a file")
 
-    if not engraving_file.exists():
-        raise ValueError(f"'{engraving_file}' does not exist")
+    existing_file = fs.find_one({"filename": engraving_file.name})
 
-    with open(engraving_file, "rb") as pdf:
-        data = pdf.read()
+    if existing_file and not overwrite:
+        return existing_file._id
 
-    file_id = fs.put(data, filename=engraving_file.name)
-    engraving.engraving = file_id
+    if existing_file and overwrite:
+        fs.delete(existing_file._id)
 
-    return engraving
+    data = engraving_file.read_bytes()
+    engraving_id = fs.put(data, filename=engraving_file.name)
+
+    return engraving_id
 
 
-def get_score_data(path: Path, fs: GridFS) -> tuple[Score, Engraving]:
+def get_score_data(path: Path, fs: GridFS) -> Score:
     score = _get_score_metadata(path)
-    engraving = _get_engraving(path, score, fs)
-    score.engraving_id = engraving._id
-    engraving.score_id = score._id
+    engraving_file = (
+        path.parent.parent / "engravings" / f"{score.title or 'unknown'}.pdf"
+    )
+    score.engraving_id = _get_engraving(engraving_file, fs)
 
-    return score, engraving
+    return score
+
+
+def commit_scores(score_sources: list[Path], db: Database) -> None:
+    fs = GridFS(db)
+    scores = list()
+
+    for src_dir in score_sources:
+        score = get_score_data(src_dir, fs)
+
+        scores.append(asdict(score))
+
+    for score in scores:  # type: ignore[assignment]
+        db.scores.update_one(
+            {"simple_name": score["simple_name"]},  # type: ignore[index]
+            {"$set": score},
+            upsert=True,
+        )
+
+
+def update_score(path: Path, db: Database) -> None:
+    query = {"simple_name": path.stem}
+    score = db.scores.find_one(query)
+
+    if not score:
+        raise ValueError(f"No score with simple_name '{path.stem}' found")
+
+    engraving_file = (
+        path.parent.parent / "engravings" / f"{score.title or 'unknown'}.pdf"
+    )
+    fs = GridFS(db)
+    new_engraving_id = _get_engraving(engraving_file, fs, overwrite=True)
+    result = db.scores.update_one(query, {"$set": {"engraving_id": new_engraving_id}})
+
+    if result.modified_count < 1:
+        raise RuntimeError("No update took place; please review your data")
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -99,23 +128,23 @@ def get_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("path", nargs="?", help="Path to directory containing score")
     parser.add_argument(
+        "-u",
+        "--update",
+        action="store_true",
+        help="Update engraving of a pre-existing score",
+    )
+    parser.add_argument(
         "-d", "--score-dir", help="Path to directory containing multiple scores"
     )
 
     return parser
 
 
-def commit(
-    db: Database, scores: Iterable[dict[str, Any]], engravings: Iterable[dict[str, Any]]
-) -> None:
-    db.scores.insert_many(scores)
-    db.engravings.insert_many(engravings)
-
-
 def main() -> None:
     parser = get_parser()
     args = parser.parse_args()
     path = Path(args.path) if args.path else None
+    update = args.update
     score_repo = Path(args.score_dir) if args.score_dir else None
 
     if path is None and score_repo is None:  # style here is to appease mypy
@@ -124,11 +153,11 @@ def main() -> None:
     if path and score_repo:
         sys.exit("Only one of 'path' or '--score-dir' should be provided")
 
+    if update and score_repo:
+        sys.exit("Only updating a single score is supported")
+
     client: MongoClient = MongoClient(MONGO_URI)
     db = client.get_database()
-    fs = GridFS(db)
-    metadata = list()
-    data = list()
 
     score_sources = (
         [path]
@@ -138,16 +167,13 @@ def main() -> None:
         else []
     )
 
-    for src_dir in score_sources:
-        score, engraving = get_score_data(src_dir, fs)
-
-        metadata.append(asdict(score))
-        data.append(asdict(engraving))
-
-        print(f"{score.simple_name}: engraving_id {str(engraving._id)}")
-
-    commit(db, metadata, data)
-    client.close()
+    try:
+        if update:
+            update_score(score_sources[0], db)
+        else:
+            commit_scores(score_sources, db)
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":
