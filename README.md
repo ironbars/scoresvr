@@ -113,6 +113,9 @@ poetry run data/ingest /path/to/scores/src/example-score/
 
 # or ingest all of them
 poetry run data/ingest -d /path/to/scores/src/
+
+# or update one that already exists
+poetry run data/ingest -u /path/to/scores/src/other-score/
 ```
 
 Note that the structure _under_ the individual score directories doesn't matter.
