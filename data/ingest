@@ -107,11 +107,12 @@ def commit_scores(score_sources: list[Path], db: Database) -> None:
 
 def update_score(path: Path, db: Database) -> None:
     query = {"simple_name": path.stem}
-    score = db.scores.find_one(query)
+    result = db.scores.find_one(query)
 
-    if not score:
+    if not result:
         raise ValueError(f"No score with simple_name '{path.stem}' found")
 
+    score = Score(**result)
     engraving_file = (
         path.parent.parent / "engravings" / f"{score.title or 'unknown'}.pdf"
     )
